@@ -1,0 +1,88 @@
+@import "tailwindcss";
+
+@theme {
+  --color-learning-50: #eff6ff;
+  --color-learning-100: #dbeafe;
+  --color-learning-200: #bfdbfe;
+  --color-learning-300: #93c5fd;
+  --color-learning-400: #60a5fa;
+  --color-learning-500: #3b82f6;
+  --color-learning-600: #2563eb;
+  --color-learning-700: #1d4ed8;
+  --color-learning-800: #1e40af;
+  --color-learning-900: #1e3a8a;
+  --color-learning-950: #172554;
+
+  --color-focus-50: #faf5ff;
+  --color-focus-100: #f3e8ff;
+  --color-focus-200: #e9d5ff;
+  --color-focus-300: #d8b4fe;
+  --color-focus-400: #c084fc;
+  --color-focus-500: #a855f7;
+  --color-focus-600: #9333ea;
+  --color-focus-700: #7e22ce;
+  --color-focus-800: #6b21a8;
+  --color-focus-900: #581c87;
+  --color-focus-950: #3b0764;
+
+  --color-nexora-bg-dark: #090d16;
+  --color-nexora-surface-dark: #0f172a;
+  --color-nexora-card-dark: #131d33;
+  --color-nexora-border-dark: #1e2b48;
+
+  --color-nexora-bg-light: #f8faff;
+  --color-nexora-surface-light: #ffffff;
+  --color-nexora-card-light: #ffffff;
+  --color-nexora-border-light: #e2e8f0;
+}
+
+@layer base {
+  body {
+    @apply antialiased transition-colors duration-200;
+  }
+  
+  ::selection {
+    background-color: #3b82f6;
+    color: #ffffff;
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.animate-shimmer {
+  animation: shimmer 2s infinite ease-in-out;
+}
+
+/* Custom crisp scrollbar for Nexora Study AI */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(99, 102, 241, 0.2);
+  border-radius: 9999px;
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: rgba(147, 197, 253, 0.2);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(99, 102, 241, 0.4);
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: rgba(147, 197, 253, 0.4);
+}

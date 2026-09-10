@@ -1,0 +1,11 @@
+{
+  "name": "EduNex STUDY AI – Your Personal Learning Companion 2",
+  "description": "Intelligent AI-powered study platform featuring an AI Study Coach, Weakness Detector, SnapStudy note scanner, Adaptive Study Planner, and gamified mastery system.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone"
+  ],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
