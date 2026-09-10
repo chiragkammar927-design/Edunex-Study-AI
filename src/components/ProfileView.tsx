@@ -17,7 +17,11 @@ import {
   Crown,
   Phone,
   MessageCircle,
+  Cloud,
+  LogIn,
+  LogOut,
 } from 'lucide-react';
+import { User } from 'firebase/auth';
 import { triggerCelebration, soundFX } from '../utils/soundOrConfetti';
 
 interface ProfileViewProps {
@@ -25,9 +29,20 @@ interface ProfileViewProps {
   onAddXP: (xp: number) => void;
   onOpenUpgrade?: () => void;
   onAddStudyMinutes?: (minutes: number) => void;
+  currentUser?: User | null;
+  onSignInWithGoogle?: () => void;
+  onSignOut?: () => void;
 }
 
-export const ProfileView: React.FC<ProfileViewProps> = ({ profile, onAddXP, onOpenUpgrade, onAddStudyMinutes }) => {
+export const ProfileView: React.FC<ProfileViewProps> = ({
+  profile,
+  onAddXP,
+  onOpenUpgrade,
+  onAddStudyMinutes,
+  currentUser,
+  onSignInWithGoogle,
+  onSignOut,
+}) => {
   // Pomodoro Timer State
   const [pomodoroMinutes, setPomodoroMinutes] = useState(25);
   const [pomodoroSeconds, setPomodoroSeconds] = useState(0);
@@ -122,6 +137,33 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ profile, onAddXP, onOp
                     : `Free Trial (${profile.subscription?.trialDaysLeft ?? 4}d left) • Upgrade from $99`}
                 </span>
               </button>
+            )}
+
+            {/* Firebase Google Auth Button */}
+            {currentUser ? (
+              <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/10 border border-emerald-400/40 text-emerald-300 text-xs font-semibold">
+                <Cloud className="w-3.5 h-3.5 text-emerald-400" />
+                <span className="truncate max-w-[150px]">{currentUser.email || 'Cloud Synced'}</span>
+                {onSignOut && (
+                  <button
+                    onClick={onSignOut}
+                    className="p-1 rounded hover:bg-white/20 text-slate-300 hover:text-white"
+                    title="Sign Out"
+                  >
+                    <LogOut className="w-3 h-3" />
+                  </button>
+                )}
+              </div>
+            ) : (
+              onSignInWithGoogle && (
+                <button
+                  onClick={onSignInWithGoogle}
+                  className="px-3.5 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs shadow-md transition active:scale-95 flex items-center gap-1.5 cursor-pointer"
+                >
+                  <LogIn className="w-3.5 h-3.5" />
+                  <span>Connect Google Account</span>
+                </button>
+              )
             )}
 
             <button

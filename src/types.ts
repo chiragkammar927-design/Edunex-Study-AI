@@ -17,6 +17,7 @@ export interface UserSubscription {
 
 export interface StudentProfile {
   name: string;
+  email?: string;
   avatar: string;
   grade: string;
   level: number;

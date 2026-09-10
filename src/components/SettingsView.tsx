@@ -21,7 +21,12 @@ import {
   AlertCircle,
   CheckCircle2,
   Zap,
+  Cloud,
+  LogIn,
+  LogOut,
+  RefreshCw,
 } from 'lucide-react';
+import { User } from 'firebase/auth';
 import { soundFX } from '../utils/soundOrConfetti';
 import { UserSubscription, NotificationSettings } from '../types';
 import { notificationService } from '../services/notificationService';
@@ -37,6 +42,11 @@ interface SettingsViewProps {
   subscription?: UserSubscription;
   onOpenUpgrade?: () => void;
   onTriggerTestNotification?: (type: 'study' | 'flashcard') => void;
+  currentUser?: User | null;
+  onSignInWithGoogle?: () => void;
+  onSignOut?: () => void;
+  onSyncCloud?: () => void;
+  isSyncing?: boolean;
 }
 
 export const SettingsView: React.FC<SettingsViewProps> = ({
@@ -50,6 +60,11 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   subscription,
   onOpenUpgrade,
   onTriggerTestNotification,
+  currentUser,
+  onSignInWithGoogle,
+  onSignOut,
+  onSyncCloud,
+  isSyncing = false,
 }) => {
   const [customName, setCustomName] = useState(appName);
   const [nameSaved, setNameSaved] = useState(false);
@@ -112,6 +127,88 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
       </div>
 
       <div className="p-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-xs space-y-6">
+        {/* Firebase Cloud Sync & Google Auth */}
+        <div className="p-4 rounded-2xl bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/40 dark:to-indigo-950/40 border border-blue-200/80 dark:border-blue-900/60 space-y-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Cloud className="w-5 h-5 text-blue-600 dark:text-cyan-400" />
+              <div>
+                <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                  <span>Firebase Cloud Persistence</span>
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-blue-100 dark:bg-blue-900/60 text-blue-700 dark:text-cyan-300">
+                    Firestore Active
+                  </span>
+                </h3>
+                <p className="text-xs text-slate-600 dark:text-slate-300">
+                  Secure real-time synchronization for your study plans, weaknesses, flashcards, and notes.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-2 border-t border-blue-200/60 dark:border-blue-900/60">
+            {currentUser ? (
+              <div className="flex items-center gap-3">
+                {currentUser.photoURL && (
+                  <img
+                    src={currentUser.photoURL}
+                    alt={currentUser.displayName || 'User'}
+                    className="w-10 h-10 rounded-full ring-2 ring-emerald-500/50 object-cover"
+                  />
+                )}
+                <div>
+                  <p className="text-xs font-bold text-slate-900 dark:text-white">
+                    {currentUser.displayName || 'Student Account'}
+                  </p>
+                  <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                    {currentUser.email || currentUser.uid}
+                  </p>
+                </div>
+              </div>
+            ) : (
+              <div className="text-xs text-slate-600 dark:text-slate-300">
+                Sign in with your Google account to enable multi-device sync and cloud backup.
+              </div>
+            )}
+
+            <div className="flex items-center gap-2">
+              {currentUser ? (
+                <>
+                  {onSyncCloud && (
+                    <button
+                      onClick={onSyncCloud}
+                      disabled={isSyncing}
+                      className="px-3 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold transition flex items-center gap-1.5 shadow-xs cursor-pointer disabled:opacity-50"
+                    >
+                      <RefreshCw className={`w-3.5 h-3.5 ${isSyncing ? 'animate-spin' : ''}`} />
+                      <span>{isSyncing ? 'Syncing...' : 'Sync Now'}</span>
+                    </button>
+                  )}
+                  {onSignOut && (
+                    <button
+                      onClick={onSignOut}
+                      className="px-3 py-1.5 rounded-xl bg-slate-200 dark:bg-slate-800 hover:bg-rose-100 dark:hover:bg-rose-950/40 text-slate-700 dark:text-slate-300 hover:text-rose-600 dark:hover:text-rose-300 text-xs font-bold transition flex items-center gap-1.5 cursor-pointer"
+                    >
+                      <LogOut className="w-3.5 h-3.5" />
+                      <span>Sign Out</span>
+                    </button>
+                  )}
+                </>
+              ) : (
+                onSignInWithGoogle && (
+                  <button
+                    onClick={onSignInWithGoogle}
+                    className="px-4 py-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white text-xs font-bold transition flex items-center gap-2 shadow-sm shadow-blue-600/25 cursor-pointer active:scale-95"
+                  >
+                    <LogIn className="w-4 h-4" />
+                    <span>Sign in with Google</span>
+                  </button>
+                )
+              )}
+            </div>
+          </div>
+        </div>
+
         {/* App Name & Branding Customization */}
         <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/80 space-y-3">
           <div className="flex items-center justify-between">

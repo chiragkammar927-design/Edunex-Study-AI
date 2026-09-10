@@ -1,0 +1,137 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Global Safety Net: Deny all unmatched paths
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Helper functions
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() > 0 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    // Validation Blueprint for User Profile
+    function isValidUserProfile(data) {
+      return data.uid is string &&
+             data.uid == request.auth.uid &&
+             data.name is string && data.name.size() <= 100 &&
+             data.level is number && data.level >= 1 &&
+             data.xp is number && data.xp >= 0 &&
+             data.streakDays is number && data.streakDays >= 0;
+    }
+
+    // Validation Blueprint for Weakness Item
+    function isValidWeakness(data) {
+      return data.userId is string && data.userId == request.auth.uid &&
+             data.subject is string && data.subject.size() <= 50 &&
+             data.chapter is string && data.chapter.size() <= 100 &&
+             data.score is number && data.score >= 0;
+    }
+
+    // Validation Blueprint for Flashcard
+    function isValidFlashcard(data) {
+      return data.userId is string && data.userId == request.auth.uid &&
+             data.subject is string && data.subject.size() <= 50 &&
+             data.front is string && data.front.size() <= 1000 &&
+             data.back is string && data.back.size() <= 2000;
+    }
+
+    // Validation Blueprint for Note
+    function isValidNote(data) {
+      return data.userId is string && data.userId == request.auth.uid &&
+             data.title is string && data.title.size() <= 150 &&
+             data.content is string && data.content.size() <= 10000;
+    }
+
+    // Validation Blueprint for Study Circle
+    function isValidCircle(data) {
+      return data.name is string && data.name.size() <= 100 &&
+             data.subject is string && data.subject.size() <= 50 &&
+             data.description is string && data.description.size() <= 500;
+    }
+
+    // Validation Blueprint for Circle Chat Message
+    function isValidCircleMessage(data) {
+      return data.senderId is string && data.senderId == request.auth.uid &&
+             data.senderName is string && data.senderName.size() <= 100 &&
+             data.text is string && data.text.size() <= 1000;
+    }
+
+    // Test collection for boot connectivity check
+    match /test/{testId} {
+      allow read: if true;
+    }
+
+    // User Profile Documents
+    match /users/{userId} {
+      allow get: if isOwner(userId);
+      allow list: if isOwner(userId);
+      allow create: if isOwner(userId) && isValidUserProfile(incoming());
+      allow update: if isOwner(userId) && isValidUserProfile(incoming());
+      allow delete: if isOwner(userId);
+
+      // User Weaknesses Subcollection
+      match /weaknesses/{weaknessId} {
+        allow read: if isOwner(userId);
+        allow create: if isOwner(userId) && isValidWeakness(incoming());
+        allow update: if isOwner(userId) && isValidWeakness(incoming());
+        allow delete: if isOwner(userId);
+      }
+
+      // User Flashcards Subcollection
+      match /flashcards/{flashcardId} {
+        allow read: if isOwner(userId);
+        allow create: if isOwner(userId) && isValidFlashcard(incoming());
+        allow update: if isOwner(userId) && isValidFlashcard(incoming());
+        allow delete: if isOwner(userId);
+      }
+
+      // User Schedule Subcollection
+      match /schedule/{scheduleId} {
+        allow read: if isOwner(userId);
+        allow create, update, delete: if isOwner(userId);
+      }
+
+      // User Notes Subcollection
+      match /notes/{noteId} {
+        allow read: if isOwner(userId);
+        allow create: if isOwner(userId) && isValidNote(incoming());
+        allow update: if isOwner(userId) && isValidNote(incoming());
+        allow delete: if isOwner(userId);
+      }
+    }
+
+    // Study Circles Collection
+    match /studyCircles/{circleId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn() && isValidCircle(incoming());
+      allow update: if isSignedIn() && isValidCircle(incoming());
+      allow delete: if false;
+
+      // Circle Chat Messages Subcollection
+      match /messages/{messageId} {
+        allow read: if isSignedIn();
+        allow create: if isSignedIn() && isValidCircleMessage(incoming());
+        allow update, delete: if false;
+      }
+    }
+  }
+}

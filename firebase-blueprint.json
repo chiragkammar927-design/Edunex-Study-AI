@@ -1,0 +1,400 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "User student profile including gamification stats, preferences, and subscription details.",
+      "type": "object",
+      "properties": {
+        "uid": {
+          "type": "string",
+          "description": "Firebase Auth UID matching the document ID"
+        },
+        "name": {
+          "type": "string",
+          "description": "Student display name",
+          "maxLength": 100
+        },
+        "email": {
+          "type": "string",
+          "description": "Student email address",
+          "maxLength": 150
+        },
+        "avatar": {
+          "type": "string",
+          "description": "Avatar emoji or URL identifier",
+          "maxLength": 200
+        },
+        "grade": {
+          "type": "string",
+          "description": "Student school grade or target",
+          "maxLength": 50
+        },
+        "level": {
+          "type": "number",
+          "description": "Gamification level"
+        },
+        "xp": {
+          "type": "number",
+          "description": "Current total XP points"
+        },
+        "xpToNextLevel": {
+          "type": "number",
+          "description": "XP required for the next rank"
+        },
+        "streakDays": {
+          "type": "number",
+          "description": "Consecutive days studied"
+        },
+        "todayStudyMinutes": {
+          "type": "number",
+          "description": "Minutes studied today"
+        },
+        "todayGoalMinutes": {
+          "type": "number",
+          "description": "Daily target study minutes"
+        },
+        "overallMastery": {
+          "type": "number",
+          "description": "Overall curriculum mastery percentage (0-100)"
+        },
+        "phoneNumber": {
+          "type": "string",
+          "description": "Contact or upgrade phone number",
+          "maxLength": 30
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Creation ISO timestamp or server timestamp representation"
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "Last updated timestamp"
+        }
+      },
+      "required": ["uid", "name", "level", "xp", "streakDays"]
+    },
+    "WeaknessItem": {
+      "title": "WeaknessItem",
+      "description": "Identified weak topic or concept requiring targeted practice.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the weakness item"
+        },
+        "userId": {
+          "type": "string",
+          "description": "Owner student user UID"
+        },
+        "subject": {
+          "type": "string",
+          "description": "Academic subject",
+          "maxLength": 50
+        },
+        "chapter": {
+          "type": "string",
+          "description": "Chapter name",
+          "maxLength": 100
+        },
+        "subtopic": {
+          "type": "string",
+          "description": "Specific subtopic or concept",
+          "maxLength": 100
+        },
+        "score": {
+          "type": "number",
+          "description": "Current proficiency score"
+        },
+        "maxScore": {
+          "type": "number",
+          "description": "Maximum possible score"
+        },
+        "weaknessLabel": {
+          "type": "string",
+          "description": "Short diagnostic label",
+          "maxLength": 100
+        },
+        "rootCause": {
+          "type": "string",
+          "description": "Diagnosed root cause for student mistakes",
+          "maxLength": 300
+        },
+        "confidence": {
+          "type": "string",
+          "description": "Student confidence level",
+          "enum": ["Low", "Medium", "Critical"]
+        },
+        "recommendedPracticeMinutes": {
+          "type": "number",
+          "description": "Suggested remedial drill duration"
+        },
+        "mistakeFrequency": {
+          "type": "number",
+          "description": "Number of times this mistake occurred"
+        },
+        "sampleMistake": {
+          "type": "string",
+          "description": "Example misconception or failed question",
+          "maxLength": 500
+        }
+      },
+      "required": ["id", "userId", "subject", "chapter", "subtopic", "score", "maxScore", "weaknessLabel"]
+    },
+    "FlashcardItem": {
+      "title": "FlashcardItem",
+      "description": "Spaced repetition flashcard for memory reinforcement.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Flashcard document identifier"
+        },
+        "userId": {
+          "type": "string",
+          "description": "Owner student user UID"
+        },
+        "subject": {
+          "type": "string",
+          "description": "Subject category",
+          "maxLength": 50
+        },
+        "chapter": {
+          "type": "string",
+          "description": "Chapter title",
+          "maxLength": 100
+        },
+        "front": {
+          "type": "string",
+          "description": "Front prompt or question",
+          "maxLength": 1000
+        },
+        "back": {
+          "type": "string",
+          "description": "Back explanation or answer",
+          "maxLength": 2000
+        },
+        "intervalDays": {
+          "type": "number",
+          "description": "Current SM-2 spaced repetition interval in days"
+        },
+        "repetitions": {
+          "type": "number",
+          "description": "Number of successful consecutive reviews"
+        },
+        "easeFactor": {
+          "type": "number",
+          "description": "SM-2 ease multiplier"
+        },
+        "nextReviewDate": {
+          "type": "string",
+          "description": "Next scheduled review date (YYYY-MM-DD)",
+          "maxLength": 20
+        },
+        "status": {
+          "type": "string",
+          "description": "Spaced repetition review status",
+          "enum": ["revise_today", "coming_up", "mastered", "learning", "review"]
+        }
+      },
+      "required": ["id", "userId", "subject", "chapter", "front", "back", "intervalDays", "nextReviewDate", "status"]
+    },
+    "StudyScheduleItem": {
+      "title": "StudyScheduleItem",
+      "description": "Daily study plan schedule day with structured learning tasks.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Schedule day document ID"
+        },
+        "userId": {
+          "type": "string",
+          "description": "Owner student user UID"
+        },
+        "dayTitle": {
+          "type": "string",
+          "description": "Day name or title",
+          "maxLength": 50
+        },
+        "date": {
+          "type": "string",
+          "description": "Date representation (YYYY-MM-DD)",
+          "maxLength": 20
+        },
+        "targetMinutes": {
+          "type": "number",
+          "description": "Planned target minutes for the day"
+        }
+      },
+      "required": ["id", "userId", "dayTitle", "date", "targetMinutes"]
+    },
+    "SnapNoteItem": {
+      "title": "SnapNoteItem",
+      "description": "Quick notes, scanned note drafts, and study highlights.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Note document ID"
+        },
+        "userId": {
+          "type": "string",
+          "description": "Owner student user UID"
+        },
+        "title": {
+          "type": "string",
+          "description": "Note title",
+          "maxLength": 150
+        },
+        "subject": {
+          "type": "string",
+          "description": "Subject category",
+          "maxLength": 50
+        },
+        "content": {
+          "type": "string",
+          "description": "Extracted or authored study note content",
+          "maxLength": 10000
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Creation timestamp",
+          "maxLength": 50
+        },
+        "priority": {
+          "type": "string",
+          "description": "Priority tag",
+          "enum": ["high", "medium", "normal"]
+        }
+      },
+      "required": ["id", "userId", "title", "subject", "content", "createdAt"]
+    },
+    "StudyCircle": {
+      "title": "StudyCircle",
+      "description": "Collaborative peer learning circle with subject topics and chat.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Circle document ID"
+        },
+        "name": {
+          "type": "string",
+          "description": "Circle group name",
+          "maxLength": 100
+        },
+        "subject": {
+          "type": "string",
+          "description": "Subject focus",
+          "maxLength": 50
+        },
+        "description": {
+          "type": "string",
+          "description": "Circle description and goals",
+          "maxLength": 500
+        },
+        "membersCount": {
+          "type": "number",
+          "description": "Number of enrolled members"
+        },
+        "activeNowCount": {
+          "type": "number",
+          "description": "Current active participants"
+        },
+        "streakDays": {
+          "type": "number",
+          "description": "Group study streak"
+        },
+        "weeklyTargetHours": {
+          "type": "number",
+          "description": "Weekly study goal in hours"
+        },
+        "avatarIcon": {
+          "type": "string",
+          "description": "Emoji or icon identifier",
+          "maxLength": 50
+        },
+        "hostName": {
+          "type": "string",
+          "description": "Host student or mentor name",
+          "maxLength": 100
+        },
+        "creatorId": {
+          "type": "string",
+          "description": "Creator user UID"
+        }
+      },
+      "required": ["id", "name", "subject", "description", "membersCount", "hostName"]
+    },
+    "CircleChatMessage": {
+      "title": "CircleChatMessage",
+      "description": "Message sent in a collaborative study circle.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Message document ID"
+        },
+        "circleId": {
+          "type": "string",
+          "description": "Parent study circle ID"
+        },
+        "senderId": {
+          "type": "string",
+          "description": "Sender user UID"
+        },
+        "senderName": {
+          "type": "string",
+          "description": "Sender display name",
+          "maxLength": 100
+        },
+        "avatar": {
+          "type": "string",
+          "description": "Sender avatar string",
+          "maxLength": 50
+        },
+        "text": {
+          "type": "string",
+          "description": "Chat message content",
+          "maxLength": 1000
+        },
+        "time": {
+          "type": "string",
+          "description": "Formatted time string or ISO timestamp",
+          "maxLength": 50
+        }
+      },
+      "required": ["id", "circleId", "senderId", "senderName", "text"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "UserProfile",
+      "description": "User student profile, statistics, and settings"
+    },
+    "/users/{userId}/weaknesses/{weaknessId}": {
+      "schema": "WeaknessItem",
+      "description": "Personalized weakness detector items for the student"
+    },
+    "/users/{userId}/flashcards/{flashcardId}": {
+      "schema": "FlashcardItem",
+      "description": "Spaced repetition flashcards belonging to the student"
+    },
+    "/users/{userId}/schedule/{scheduleId}": {
+      "schema": "StudyScheduleItem",
+      "description": "Adaptive study planner schedule items for the student"
+    },
+    "/users/{userId}/notes/{noteId}": {
+      "schema": "SnapNoteItem",
+      "description": "Saved SnapStudy notes and quick drafts"
+    },
+    "/studyCircles/{circleId}": {
+      "schema": "StudyCircle",
+      "description": "Community study circles"
+    },
+    "/studyCircles/{circleId}/messages/{messageId}": {
+      "schema": "CircleChatMessage",
+      "description": "Real-time chat messages inside a study circle"
+    }
+  }
+}

@@ -45,9 +45,30 @@ import { VirtualLab } from './components/VirtualLab';
 import { BossBattles } from './components/BossBattles';
 import { QuickNoteFAB } from './components/QuickNoteFAB';
 import { QuickNoteModal } from './components/QuickNoteModal';
+import { AuthModal } from './components/AuthModal';
 import { triggerCelebration, soundFX } from './utils/soundOrConfetti';
+import { User } from 'firebase/auth';
+import {
+  testFirestoreConnection,
+  signInWithGoogle,
+  signOutUser,
+  subscribeAuthState,
+  syncUserProfileToFirestore,
+  subscribeUserProfile,
+  syncWeaknessesToFirestore,
+  subscribeWeaknesses,
+  syncFlashcardsToFirestore,
+  subscribeFlashcards,
+  saveSnapNoteToFirestore,
+  subscribeSnapNotes,
+} from './services/firebase';
 
 export default function App() {
+  // Firebase Authentication & Cloud State
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [isCloudSyncing, setIsCloudSyncing] = useState(false);
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+
   // Application State
   const [profile, setProfile] = useState<StudentProfile>(() => {
     const saved = localStorage.getItem('nexora_profile');
@@ -181,6 +202,130 @@ export default function App() {
     }
   }, [isDarkMode]);
 
+  // Firebase Initialization & Real-time Cloud Synchronization
+  useEffect(() => {
+    // 1. Connectivity test on startup
+    testFirestoreConnection().catch((err) =>
+      console.warn('[Firebase] Initial connection check:', err)
+    );
+
+    // 2. Auth state subscription
+    const unsubscribeAuth = subscribeAuthState((user) => {
+      setCurrentUser(user);
+      if (user) {
+        console.log('[Firebase] Active session for user:', user.uid);
+      }
+    });
+
+    return () => unsubscribeAuth();
+  }, []);
+
+  // When user signs in, attach real-time snapshot listeners for profile, weaknesses, flashcards, and notes
+  useEffect(() => {
+    if (!currentUser) return;
+
+    // A. Subscribe to UserProfile in Firestore
+    const unsubProfile = subscribeUserProfile(currentUser.uid, (cloudProfile) => {
+      if (cloudProfile) {
+        setProfile((prev) => ({
+          ...prev,
+          name: cloudProfile.name || prev.name,
+          email: cloudProfile.email || prev.email,
+          avatar: cloudProfile.avatar || prev.avatar,
+          level: cloudProfile.level ?? prev.level,
+          xp: cloudProfile.xp ?? prev.xp,
+          streakDays: cloudProfile.streakDays ?? prev.streakDays,
+          todayStudyMinutes: cloudProfile.todayStudyMinutes ?? prev.todayStudyMinutes,
+          todayGoalMinutes: cloudProfile.todayGoalMinutes ?? prev.todayGoalMinutes,
+          xpToNextLevel: cloudProfile.xpToNextLevel ?? prev.xpToNextLevel,
+          grade: cloudProfile.grade || prev.grade,
+        }));
+      } else {
+        // First time cloud sync for this user: populate firestore with current profile
+        syncUserProfileToFirestore(currentUser.uid, profile).catch((err) =>
+          console.error('[Firebase] Initial profile upload failed:', err)
+        );
+      }
+    });
+
+    // B. Subscribe to Weaknesses
+    const unsubWeaknesses = subscribeWeaknesses(currentUser.uid, (cloudWeaknesses) => {
+      if (cloudWeaknesses && cloudWeaknesses.length > 0) {
+        setWeaknesses(cloudWeaknesses);
+      }
+    });
+
+    // C. Subscribe to Flashcards
+    const unsubFlashcards = subscribeFlashcards(currentUser.uid, (cloudFlashcards) => {
+      if (cloudFlashcards && cloudFlashcards.length > 0) {
+        setFlashcards(cloudFlashcards);
+      }
+    });
+
+    // D. Subscribe to SnapNotes
+    const unsubNotes = subscribeSnapNotes(currentUser.uid, (cloudNotes) => {
+      if (cloudNotes && cloudNotes.length > 0) {
+        setSnapStudyDrafts((prev) => {
+          // Merge avoiding duplicates
+          const ids = new Set(cloudNotes.map((n) => n.id));
+          return [...cloudNotes, ...prev.filter((d) => !ids.has(d.id))];
+        });
+      }
+    });
+
+    return () => {
+      unsubProfile();
+      unsubWeaknesses();
+      unsubFlashcards();
+      unsubNotes();
+    };
+  }, [currentUser]);
+
+  // Handle Manual Full Cloud Sync
+  const handleManualCloudSync = async () => {
+    if (!currentUser) {
+      soundFX.playPop();
+      await handleSignIn();
+      return;
+    }
+    setIsCloudSyncing(true);
+    try {
+      await Promise.all([
+        syncUserProfileToFirestore(currentUser.uid, profile),
+        syncWeaknessesToFirestore(currentUser.uid, weaknesses),
+        syncFlashcardsToFirestore(currentUser.uid, flashcards),
+      ]);
+      soundFX.playSuccess();
+      triggerCelebration();
+    } catch (err) {
+      console.error('[Firebase] Manual sync error:', err);
+    } finally {
+      setIsCloudSyncing(false);
+    }
+  };
+
+  const handleSignIn = async () => {
+    try {
+      const user = await signInWithGoogle();
+      if (user) {
+        setCurrentUser(user);
+        soundFX.playSuccess();
+      }
+    } catch (err) {
+      console.error('[Firebase] Google sign in failed:', err);
+    }
+  };
+
+  const handleSignOut = async () => {
+    try {
+      await signOutUser();
+      setCurrentUser(null);
+      soundFX.playPop();
+    } catch (err) {
+      console.error('[Firebase] Sign out failed:', err);
+    }
+  };
+
   // Persist State to local storage
   useEffect(() => {
     localStorage.setItem('nexora_profile', JSON.stringify(profile));
@@ -216,6 +361,11 @@ export default function App() {
 
   const handleSaveDraft = (draft: SnapStudyDraft, openInSnapStudy: boolean = false) => {
     setSnapStudyDrafts((prev) => [draft, ...prev.filter((d) => d.id !== draft.id)]);
+    if (currentUser) {
+      saveSnapNoteToFirestore(currentUser.uid, draft).catch((err) =>
+        console.error('[Firebase] Save note failed:', err)
+      );
+    }
     if (openInSnapStudy) {
       setActiveDraftToLoad(draft);
       setCurrentTab('snapstudy');
@@ -240,12 +390,20 @@ export default function App() {
         soundFX.playSuccess();
       }
 
-      return {
+      const updated = {
         ...prev,
         xp: newXp,
         level: newLevel,
         xpToNextLevel: newGoal,
       };
+
+      if (currentUser) {
+        syncUserProfileToFirestore(currentUser.uid, updated).catch((err) =>
+          console.error('[Firebase] Sync XP failed:', err)
+        );
+      }
+
+      return updated;
     });
   };
 
@@ -263,20 +421,36 @@ export default function App() {
         soundFX.playSuccess();
       }
 
-      return {
+      const updated = {
         ...prev,
         todayStudyMinutes: newMinutes,
         streakDays: newStreak,
       };
+
+      if (currentUser) {
+        syncUserProfileToFirestore(currentUser.uid, updated).catch((err) =>
+          console.error('[Firebase] Sync minutes failed:', err)
+        );
+      }
+
+      return updated;
     });
   };
 
   // Handler: Update Daily Goal Target Minutes
   const handleUpdateGoalMinutes = (newGoal: number) => {
-    setProfile((prev) => ({
-      ...prev,
-      todayGoalMinutes: newGoal,
-    }));
+    setProfile((prev) => {
+      const updated = {
+        ...prev,
+        todayGoalMinutes: newGoal,
+      };
+      if (currentUser) {
+        syncUserProfileToFirestore(currentUser.uid, updated).catch((err) =>
+          console.error('[Firebase] Sync goal failed:', err)
+        );
+      }
+      return updated;
+    });
   };
 
   // Handler: Daily Mission Tasks
@@ -297,7 +471,15 @@ export default function App() {
 
   // Handler: Weakness Resolved
   const handleResolveWeakness = (weaknessId: string) => {
-    setWeaknesses((prev) => prev.filter((w) => w.id !== weaknessId));
+    setWeaknesses((prev) => {
+      const remaining = prev.filter((w) => w.id !== weaknessId);
+      if (currentUser) {
+        syncWeaknessesToFirestore(currentUser.uid, remaining).catch((err) =>
+          console.error('[Firebase] Sync weaknesses failed:', err)
+        );
+      }
+      return remaining;
+    });
     setProfile((prev) => ({
       ...prev,
       overallMastery: Math.min(100, prev.overallMastery + 3),
@@ -346,13 +528,21 @@ export default function App() {
       status: 'learning',
     }));
 
-    setFlashcards((prev) => [...formatted, ...prev]);
+    setFlashcards((prev) => {
+      const updated = [...formatted, ...prev];
+      if (currentUser) {
+        syncFlashcardsToFirestore(currentUser.uid, updated).catch((err) =>
+          console.error('[Firebase] Sync flashcards failed:', err)
+        );
+      }
+      return updated;
+    });
   };
 
   // Handler: Flashcard Review Rating (Spaced Repetition algorithm)
   const handleReviewFlashcard = (cardId: string, rating: 'again' | 'hard' | 'good' | 'easy') => {
-    setFlashcards((prev) =>
-      prev.map((card) => {
+    setFlashcards((prev) => {
+      const updated = prev.map((card) => {
         if (card.id !== cardId) return card;
         let newInterval = 1;
         let newStatus: Flashcard['status'] = card.status;
@@ -377,8 +567,15 @@ export default function App() {
           repetitions: card.repetitions + 1,
           status: newStatus,
         };
-      })
-    );
+      });
+
+      if (currentUser) {
+        syncFlashcardsToFirestore(currentUser.uid, updated).catch((err) =>
+          console.error('[Firebase] Sync flashcards on review failed:', err)
+        );
+      }
+      return updated;
+    });
   };
 
   // Handler: Record Quiz Results into Weakness Detector & Profile
@@ -557,6 +754,10 @@ export default function App() {
         onOpenUpgrade={() => setIsUpgradeModalOpen(true)}
         appName={appName}
         onRenameApp={(name) => setAppName(name)}
+        currentUser={currentUser}
+        onSignIn={() => setIsAuthModalOpen(true)}
+        onSignOut={handleSignOut}
+        isCloudSynced={!!currentUser}
       />
 
       {/* Main Content Viewport with Sticky Sidebar */}
@@ -755,6 +956,9 @@ export default function App() {
               onAddXP={handleAddXP}
               onOpenUpgrade={() => setIsUpgradeModalOpen(true)}
               onAddStudyMinutes={handleAddStudyMinutes}
+              currentUser={currentUser}
+              onSignInWithGoogle={() => setIsAuthModalOpen(true)}
+              onSignOut={handleSignOut}
             />
           )}
 
@@ -770,6 +974,11 @@ export default function App() {
               onChangeAppName={(name) => setAppName(name)}
               subscription={profile.subscription}
               onOpenUpgrade={() => setIsUpgradeModalOpen(true)}
+              currentUser={currentUser}
+              onSignInWithGoogle={() => setIsAuthModalOpen(true)}
+              onSignOut={handleSignOut}
+              onSyncCloud={handleManualCloudSync}
+              isSyncing={isCloudSyncing}
               onResetData={() => {
                 localStorage.clear();
                 window.location.reload();
@@ -778,6 +987,16 @@ export default function App() {
           )}
         </main>
       </div>
+
+      {/* Auth / Google Account Connect Modal */}
+      <AuthModal
+        isOpen={isAuthModalOpen}
+        onClose={() => setIsAuthModalOpen(false)}
+        currentUser={currentUser}
+        onSignInWithGoogle={handleSignIn}
+        onSignOut={handleSignOut}
+        appName={appName}
+      />
 
       {/* Upgrade & Free Trial Modal */}
       <UpgradeModal

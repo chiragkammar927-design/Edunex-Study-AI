@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { StudentProfile } from '../types';
-import { Flame, Sparkles, Moon, Sun, Menu, Edit2, Check, X, Crown, Bell, GraduationCap, Zap } from 'lucide-react';
+import { Flame, Sparkles, Moon, Sun, Menu, Edit2, Check, X, Crown, Bell, GraduationCap, Zap, Cloud, CloudOff, LogIn, LogOut, User as UserIcon } from 'lucide-react';
+import { User } from 'firebase/auth';
 
 interface NavbarProps {
   profile: StudentProfile;
@@ -16,6 +17,10 @@ interface NavbarProps {
   onToggleNotifications?: () => void;
   appName?: string;
   onRenameApp?: (name: string) => void;
+  currentUser?: User | null;
+  onSignIn?: () => void;
+  onSignOut?: () => void;
+  isCloudSynced?: boolean;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
@@ -32,6 +37,10 @@ export const Navbar: React.FC<NavbarProps> = ({
   onToggleNotifications,
   appName = 'EduNex',
   onRenameApp,
+  currentUser,
+  onSignIn,
+  onSignOut,
+  isCloudSynced = true,
 }) => {
   const [isEditingName, setIsEditingName] = useState(false);
   const [tempName, setTempName] = useState(appName);
@@ -277,19 +286,63 @@ export const Navbar: React.FC<NavbarProps> = ({
             {isDark ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4 text-slate-600" />}
           </button>
 
+          {/* Cloud Sync Status / Firebase Auth */}
+          {currentUser ? (
+            <div className="flex items-center gap-1.5 pl-1 sm:pl-2 border-l border-blue-100 dark:border-blue-950/80">
+              <div
+                id="cloud-sync-status"
+                className="hidden lg:flex items-center gap-1 px-2 py-1 rounded-full text-[10px] font-bold bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800/40"
+                title="Firebase Cloud Synced"
+              >
+                <Cloud className="w-3 h-3 text-emerald-500" />
+                <span>Cloud</span>
+              </div>
+              <button
+                id="firebase-signout-btn"
+                onClick={onSignOut}
+                title={`Signed in as ${currentUser.email || currentUser.displayName}. Click to sign out`}
+                className="p-1.5 rounded-lg text-slate-500 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition cursor-pointer"
+              >
+                <LogOut className="w-4 h-4" />
+              </button>
+            </div>
+          ) : (
+            onSignIn && (
+              <button
+                id="firebase-signin-btn"
+                onClick={onSignIn}
+                className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-full bg-blue-50 dark:bg-blue-950/60 hover:bg-blue-100 dark:hover:bg-blue-900/60 text-blue-700 dark:text-cyan-300 border border-blue-200 dark:border-blue-800 text-xs font-bold transition shadow-xs cursor-pointer"
+                title="Sign in with Google to sync study progress with Firebase"
+              >
+                <LogIn className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">Sign In</span>
+              </button>
+            )
+          )}
+
           {/* Student mini avatar */}
           <div
             onClick={onOpenProfile}
             className="flex items-center gap-2 pl-1 sm:pl-2 border-l border-blue-100 dark:border-blue-950/80 cursor-pointer group"
           >
-            <img
-              src={profile.avatar}
-              alt={profile.name}
-              className="w-8 h-8 rounded-full ring-2 ring-blue-500/30 group-hover:ring-blue-500 object-cover transition"
-            />
+            {currentUser?.photoURL ? (
+              <img
+                src={currentUser.photoURL}
+                alt={currentUser.displayName || profile.name}
+                className="w-8 h-8 rounded-full ring-2 ring-emerald-500/50 group-hover:ring-emerald-500 object-cover transition"
+              />
+            ) : (
+              <div className="w-8 h-8 rounded-full ring-2 ring-blue-500/30 group-hover:ring-blue-500 bg-blue-100 dark:bg-blue-950 text-blue-600 dark:text-cyan-300 font-bold flex items-center justify-center text-xs">
+                {profile.avatar.length <= 2 ? profile.avatar : profile.name.charAt(0)}
+              </div>
+            )}
             <div className="hidden xl:block text-left">
-              <p className="text-xs font-bold text-slate-800 dark:text-slate-100 leading-tight">{profile.name}</p>
-              <p className="text-[10px] text-slate-500 dark:text-slate-400 leading-tight">{profile.grade}</p>
+              <p className="text-xs font-bold text-slate-800 dark:text-slate-100 leading-tight">
+                {currentUser?.displayName || profile.name}
+              </p>
+              <p className="text-[10px] text-slate-500 dark:text-slate-400 leading-tight">
+                {currentUser ? 'Cloud Synced' : profile.grade}
+              </p>
             </div>
           </div>
         </div>
