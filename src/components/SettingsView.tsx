@@ -133,14 +133,17 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
             <div className="flex items-center gap-2">
               <Cloud className="w-5 h-5 text-blue-600 dark:text-cyan-400" />
               <div>
-                <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                  <span>Firebase Cloud Persistence</span>
+                <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2 flex-wrap">
+                  <span>Firebase Cloud & Hosting</span>
                   <span className="px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-blue-100 dark:bg-blue-900/60 text-blue-700 dark:text-cyan-300">
                     Firestore Active
                   </span>
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-100 dark:bg-emerald-900/60 text-emerald-700 dark:text-emerald-300">
+                    Hosting Ready (dist/)
+                  </span>
                 </h3>
                 <p className="text-xs text-slate-600 dark:text-slate-300">
-                  Secure real-time synchronization for your study plans, weaknesses, flashcards, and notes.
+                  Project: <strong className="font-mono text-blue-700 dark:text-cyan-300">edunexstudyai</strong> (asia-south1) • SPA Hosting configured
                 </p>
               </div>
             </div>
