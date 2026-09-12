@@ -2,17 +2,53 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>EduNex – AI Learning Companion</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover" />
+    <title>Edunex Study AI – Your Personal Learning Companion</title>
     <meta name="description" content="Next-generation AI-powered learning platform featuring an AI Study Coach, Weakness Detector, SnapStudy note scanner, Adaptive Study Planner, printable PDF reports for offline review, and gamified mastery system." />
-    <meta property="og:title" content="EduNex – AI Learning Companion" />
+    
+    <!-- Cross-Device Mobile & PWA Optimization -->
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Edunex Study AI" />
+    <meta name="application-name" content="Edunex Study AI" />
+    <meta name="format-detection" content="telephone=no" />
+    
+    <!-- Adaptive Theme Colors for Mobile Status Bars -->
+    <meta name="theme-color" content="#2563eb" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#090d16" media="(prefers-color-scheme: dark)" />
+    <meta name="msapplication-TileColor" content="#2563eb" />
+
+    <!-- Open Graph & Social Cards -->
+    <meta property="og:title" content="Edunex Study AI – Your Personal Learning Companion" />
     <meta property="og:description" content="Next-generation AI-powered learning platform featuring an AI Study Coach, Weakness Detector, SnapStudy note scanner, Adaptive Study Planner, printable PDF reports for offline review, and gamified mastery system." />
+    <meta property="og:image" content="/edunex_logo.png" />
     <meta property="og:type" content="website" />
     <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:image" content="/edunex_logo.png" />
+
+    <!-- Google Site Verification -->
+    <meta name="google-site-verification" content="googleca78ecc54259acb3" />
+    <meta name="google-site-verification" content="googleca78ecc54259acb3.html" />
+
+    <!-- Favicon & Web App Manifest -->
+    <link rel="icon" type="image/png" href="/edunex_logo.png" />
+    <link rel="apple-touch-icon" href="/edunex_logo.png" />
+    <link rel="manifest" href="/manifest.json" />
   </head>
-  <body>
+  <body className="bg-slate-50 dark:bg-[#090d16] text-slate-900 dark:text-slate-100 min-h-screen">
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
+    <script>
+      // Register Service Worker for fast caching and offline resilience on all devices
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/sw.js')
+            .then(reg => console.log('EduNex ServiceWorker registered:', reg.scope))
+            .catch(err => console.log('ServiceWorker registration skipped:', err));
+        });
+      }
+    </script>
   </body>
 </html>
 

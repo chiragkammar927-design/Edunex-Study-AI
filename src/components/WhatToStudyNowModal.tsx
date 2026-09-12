@@ -155,7 +155,7 @@ export const WhatToStudyNowModal: React.FC<WhatToStudyNowModalProps> = ({
             </button>
           </div>
           <p className="mt-2 text-xs sm:text-sm text-indigo-100 max-w-lg leading-relaxed">
-            NEXORA analyzed your upcoming exams, weak topics, mistake history, and memory curve to formulate one laser-focused recommendation.
+            Edunex Study AI analyzed your upcoming exams, weak topics, mistake history, and memory curve to formulate one laser-focused recommendation.
           </p>
         </div>
 

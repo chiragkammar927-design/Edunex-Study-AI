@@ -107,7 +107,7 @@ export const WeaknessDetector: React.FC<WeaknessDetectorProps> = ({
             </div>
             <h1 className="text-2xl font-black tracking-tight text-white">AI Weakness Detector</h1>
             <p className="text-slate-300 text-sm mt-1 max-w-2xl">
-              NEXORA monitors quiz errors to detect the root cognitive misconceptions holding you back, then synthesizes targeted drills to eliminate them.
+              Edunex Study AI monitors quiz errors to detect the root cognitive misconceptions holding you back, then synthesizes targeted drills to eliminate them.
             </p>
           </div>
 

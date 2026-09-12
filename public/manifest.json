@@ -1,0 +1,43 @@
+{
+  "id": "/",
+  "name": "Edunex Study AI",
+  "short_name": "Edunex Study AI",
+  "description": "Next-generation AI-powered learning platform with AI Study Coach, Weakness Detector, SnapStudy note scanner, and offline printable reviews.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "theme_color": "#2563eb",
+  "background_color": "#090d16",
+  "categories": ["education", "productivity"],
+  "icons": [
+    {
+      "src": "/edunex_logo.png",
+      "sizes": "192x192 512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/edunex_logo.png",
+      "sizes": "192x192 512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Quick Study",
+      "short_name": "Study",
+      "description": "Start a focused study session",
+      "url": "/?action=study",
+      "icons": [{ "src": "/favicon.svg", "sizes": "192x192" }]
+    },
+    {
+      "name": "Weakness Drill",
+      "short_name": "Drill",
+      "description": "Target and conquer weak topics",
+      "url": "/?action=weakness",
+      "icons": [{ "src": "/favicon.svg", "sizes": "192x192" }]
+    }
+  ]
+}

@@ -34,6 +34,11 @@ app.get('/api/health', (_req, res) => {
   res.json({ status: 'ok', time: new Date().toISOString(), hasGeminiKey: !!process.env.GEMINI_API_KEY });
 });
 
+// Google Site Verification
+app.get(['/googleca78ecc54259acb3.html', '/googleca78ecc54259acb3'], (_req, res) => {
+  res.type('text/html').send('google-site-verification: googleca78ecc54259acb3.html');
+});
+
 // AI Study Coach endpoint
 app.post('/api/gemini/chat', async (req, res) => {
   try {

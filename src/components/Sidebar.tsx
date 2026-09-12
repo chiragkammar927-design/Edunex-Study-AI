@@ -29,6 +29,7 @@ import {
   Plus,
 } from 'lucide-react';
 import { StudentProfile } from '../types';
+import { Logo } from './Logo';
 
 export type NavTab =
   | 'dashboard'
@@ -70,7 +71,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onCloseMobile,
   weaknessCount,
   dueCardsCount,
-  appName = 'NEXORA STUDY AI',
+  appName = 'Edunex Study AI',
   profile,
   onAddStudyMinutes,
   onUpdateGoalMinutes,
@@ -146,12 +147,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
         {/* Mobile header inside drawer */}
         <div className="md:hidden flex items-center justify-between pb-3 mb-2 border-b border-blue-100 dark:border-blue-950">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-blue-600 via-indigo-600 to-purple-500 flex items-center justify-center text-white relative overflow-hidden shadow-xs">
-              <GraduationCap className="w-4 h-4 text-white" />
-              <div className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-cyan-300 border border-slate-900" />
-            </div>
-            <span className="font-black text-slate-900 dark:text-white tracking-tight text-base">
-              NEXORA <span className="text-cyan-500 font-extrabold text-xs">STUDY AI</span>
+            <Logo size="sm" />
+            <span className="font-black text-slate-900 dark:text-white tracking-tight text-base whitespace-nowrap">
+              {appName}
             </span>
           </div>
           <button

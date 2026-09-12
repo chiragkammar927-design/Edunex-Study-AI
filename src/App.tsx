@@ -46,7 +46,9 @@ import { BossBattles } from './components/BossBattles';
 import { QuickNoteFAB } from './components/QuickNoteFAB';
 import { QuickNoteModal } from './components/QuickNoteModal';
 import { AuthModal } from './components/AuthModal';
+import { HostingAuthPage } from './components/HostingAuthPage';
 import { triggerCelebration, soundFX } from './utils/soundOrConfetti';
+import { AlertTriangle, CheckCircle2, RefreshCw } from 'lucide-react';
 import { User } from 'firebase/auth';
 import {
   testFirestoreConnection,
@@ -61,13 +63,22 @@ import {
   subscribeFlashcards,
   saveSnapNoteToFirestore,
   subscribeSnapNotes,
+  reloadUser,
+  resendVerificationEmail,
 } from './services/firebase';
 
 export default function App() {
   // Firebase Authentication & Cloud State
   const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [authChecked, setAuthChecked] = useState(false);
+  const [isGuestMode, setIsGuestMode] = useState<boolean>(() => {
+    return localStorage.getItem('edunex_guest_mode') === 'true';
+  });
   const [isCloudSyncing, setIsCloudSyncing] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [resendCooldown, setResendCooldown] = useState(0);
+  const [isCheckingVerification, setIsCheckingVerification] = useState(false);
+  const [verificationNotice, setVerificationNotice] = useState<string | null>(null);
 
   // Application State
   const [profile, setProfile] = useState<StudentProfile>(() => {
@@ -137,15 +148,14 @@ export default function App() {
     const saved = localStorage.getItem('app_name');
     if (
       !saved ||
-      saved.toLowerCase().includes('edunex') ||
-      saved.toLowerCase().includes('novastudy') ||
+      saved === 'NEXORA STUDY AI' ||
+      saved === 'STUDY AI' ||
+      saved.toLowerCase().includes('nexora') ||
       saved === 'NovaStudy AI' ||
-      saved === 'EduNex' ||
-      saved === 'EduNex AI' ||
-      saved === 'EduNex study ai'
+      saved.toLowerCase() === 'study ai'
     ) {
-      localStorage.setItem('app_name', 'NEXORA STUDY AI');
-      return 'NEXORA STUDY AI';
+      localStorage.setItem('app_name', 'Edunex Study AI');
+      return 'Edunex Study AI';
     }
     return saved;
   });
@@ -181,12 +191,6 @@ export default function App() {
 
   // Sync document title and local storage with appName
   useEffect(() => {
-    if (appName.toLowerCase().includes('edunex')) {
-      setAppName('NEXORA STUDY AI');
-      localStorage.setItem('app_name', 'NEXORA STUDY AI');
-      document.title = 'NEXORA STUDY AI – Your Personal Learning Companion';
-      return;
-    }
     document.title = `${appName} – Your Personal Learning Companion`;
     localStorage.setItem('app_name', appName);
   }, [appName]);
@@ -212,6 +216,7 @@ export default function App() {
     // 2. Auth state subscription
     const unsubscribeAuth = subscribeAuthState((user) => {
       setCurrentUser(user);
+      setAuthChecked(true);
       if (user) {
         console.log('[Firebase] Active session for user:', user.uid);
       }
@@ -320,9 +325,56 @@ export default function App() {
     try {
       await signOutUser();
       setCurrentUser(null);
+      setIsGuestMode(false);
+      localStorage.removeItem('edunex_guest_mode');
       soundFX.playPop();
     } catch (err) {
       console.error('[Firebase] Sign out failed:', err);
+    }
+  };
+
+  const handleCheckVerificationBanner = async () => {
+    if (!currentUser) return;
+    setIsCheckingVerification(true);
+    try {
+      const refreshed = await reloadUser(currentUser);
+      setCurrentUser(refreshed);
+      if (refreshed.emailVerified) {
+        soundFX.playSuccess();
+        triggerCelebration();
+        setVerificationNotice('Google Email verified successfully! Unrestricted cloud sync unlocked.');
+        setTimeout(() => setVerificationNotice(null), 6000);
+      } else {
+        soundFX.playPop();
+        setVerificationNotice('Email not verified yet. Please check your inbox and click the verification link.');
+        setTimeout(() => setVerificationNotice(null), 5000);
+      }
+    } catch (err: any) {
+      console.error('Check verification failed:', err);
+    } finally {
+      setIsCheckingVerification(false);
+    }
+  };
+
+  const handleResendVerificationBanner = async () => {
+    if (!currentUser) return;
+    try {
+      await resendVerificationEmail(currentUser);
+      soundFX.playPop();
+      setVerificationNotice(`A fresh verification link has been dispatched to ${currentUser.email}.`);
+      setTimeout(() => setVerificationNotice(null), 6000);
+      setResendCooldown(60);
+      const timer = setInterval(() => {
+        setResendCooldown((p) => {
+          if (p <= 1) {
+            clearInterval(timer);
+            return 0;
+          }
+          return p - 1;
+        });
+      }, 1000);
+    } catch (err: any) {
+      console.error('Resend verification failed:', err);
     }
   };
 
@@ -742,8 +794,90 @@ export default function App() {
     (c) => c.nextReviewDate <= 'Today' || c.nextReviewDate === 'Immediate'
   ).length;
 
+  // Dedicated Hosting & Login Page when user is not logged in and not in demo guest mode
+  if (authChecked && !currentUser && !isGuestMode) {
+    return (
+      <HostingAuthPage
+        appName={appName}
+        isDarkMode={isDarkMode}
+        onToggleDarkMode={() => setIsDarkMode(!isDarkMode)}
+        onSignedIn={(user) => {
+          setCurrentUser(user);
+          setIsGuestMode(false);
+          localStorage.removeItem('edunex_guest_mode');
+        }}
+        onExploreDemo={() => {
+          setIsGuestMode(true);
+          localStorage.setItem('edunex_guest_mode', 'true');
+        }}
+      />
+    );
+  }
+
   return (
     <div className="min-h-screen bg-[#f8faff] dark:bg-[#090d16] text-slate-900 dark:text-slate-100 flex flex-col font-sans transition-colors duration-200">
+      {/* 1. Guest Demo Mode Banner */}
+      {!currentUser && isGuestMode && (
+        <div className="bg-gradient-to-r from-blue-700 via-indigo-700 to-cyan-600 text-white text-xs px-4 py-2 flex flex-wrap items-center justify-between gap-2 shadow-sm sticky top-0 z-40">
+          <div className="flex items-center gap-2">
+            <span className="bg-white/20 px-2 py-0.5 rounded-full font-bold text-[10px] uppercase tracking-wider">
+              Guest Demo Mode
+            </span>
+            <span>
+              Previewing <strong>{appName}</strong>. Sign in or create an account with strong password & Google verification to enable persistent cloud sync.
+            </span>
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              id="guest-signin-btn"
+              onClick={() => setIsAuthModalOpen(true)}
+              className="px-3 py-1 bg-white text-blue-700 font-bold rounded-lg text-xs hover:bg-blue-50 transition cursor-pointer shadow-xs"
+            >
+              Sign In / Register
+            </button>
+            <button
+              onClick={() => {
+                setIsGuestMode(false);
+                localStorage.removeItem('edunex_guest_mode');
+              }}
+              className="text-white/90 hover:text-white text-xs underline cursor-pointer"
+            >
+              Hosting Portal
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* 2. Google Email Verification Pending Banner */}
+      {currentUser && !currentUser.emailVerified && (
+        <div className="bg-amber-500/10 dark:bg-amber-950/50 border-b border-amber-500/30 px-4 py-2.5 text-xs text-amber-900 dark:text-amber-200 flex flex-wrap items-center justify-between gap-2 sticky top-0 z-40 backdrop-blur-md">
+          <div className="flex items-center gap-2">
+            <AlertTriangle className="w-4 h-4 text-amber-500 shrink-0" />
+            <span>
+              <strong>Google Email Verification Pending:</strong> We sent a verification link to{' '}
+              <span className="font-semibold underline">{currentUser.email}</span>. Click the link in your inbox to secure your account and unlock cloud sync.
+            </span>
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={handleResendVerificationBanner}
+              disabled={resendCooldown > 0}
+              className="px-2.5 py-1 rounded-lg bg-amber-200/70 dark:bg-amber-900/60 hover:bg-amber-300 dark:hover:bg-amber-800 text-amber-950 dark:text-amber-100 font-semibold text-xs transition cursor-pointer disabled:opacity-50"
+            >
+              {resendCooldown > 0 ? `Resend (${resendCooldown}s)` : 'Resend Link'}
+            </button>
+            <button
+              onClick={handleCheckVerificationBanner}
+              disabled={isCheckingVerification}
+              className="px-2.5 py-1 rounded-lg bg-amber-600 hover:bg-amber-500 text-white font-bold text-xs transition cursor-pointer flex items-center gap-1 shadow-xs"
+            >
+              <RefreshCw className={`w-3 h-3 ${isCheckingVerification ? 'animate-spin' : ''}`} />
+              <span>Check Status</span>
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Top Navigation Bar */}
       <Navbar
         profile={profile}
@@ -996,7 +1130,22 @@ export default function App() {
         onSignInWithGoogle={handleSignIn}
         onSignOut={handleSignOut}
         appName={appName}
+        onUserUpdated={(u) => setCurrentUser(u)}
       />
+
+      {/* Floating Verification Notification Toast */}
+      {verificationNotice && (
+        <div className="fixed bottom-20 right-6 z-50 p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-blue-900 shadow-2xl text-xs font-semibold text-slate-800 dark:text-slate-100 flex items-center gap-3 animate-fadeIn">
+          <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
+          <span>{verificationNotice}</span>
+          <button
+            onClick={() => setVerificationNotice(null)}
+            className="text-slate-400 hover:text-slate-600 dark:hover:text-white ml-2 text-sm"
+          >
+            ✕
+          </button>
+        </div>
+      )}
 
       {/* Upgrade & Free Trial Modal */}
       <UpgradeModal

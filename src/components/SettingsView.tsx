@@ -25,6 +25,13 @@ import {
   LogIn,
   LogOut,
   RefreshCw,
+  Smartphone,
+  Tablet,
+  Laptop,
+  Download,
+  ExternalLink,
+  Copy,
+  Share2,
 } from 'lucide-react';
 import { User } from 'firebase/auth';
 import { soundFX } from '../utils/soundOrConfetti';
@@ -55,7 +62,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   dailyGoal,
   onChangeDailyGoal,
   onResetData,
-  appName = 'EduNex',
+  appName = 'Edunex Study AI',
   onChangeAppName,
   subscription,
   onOpenUpgrade,
@@ -75,6 +82,17 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
     notificationService.getPermissionStatus()
   );
   const [testSentToast, setTestSentToast] = useState<string | null>(null);
+  const [activeDeviceTab, setActiveDeviceTab] = useState<'android' | 'ios' | 'desktop'>('android');
+  const [copiedUrl, setCopiedUrl] = useState(false);
+
+  const hostingUrl = 'https://edunexstudyai.web.app';
+
+  const handleCopyHostingUrl = () => {
+    navigator.clipboard.writeText(hostingUrl);
+    setCopiedUrl(true);
+    soundFX.playSuccess();
+    setTimeout(() => setCopiedUrl(false), 2500);
+  };
 
   const handleRequestPush = async () => {
     const perm = await notificationService.requestPermission();
@@ -212,6 +230,145 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
           </div>
         </div>
 
+        {/* Multi-Device Access & Firebase Hosting Hub */}
+        <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-br from-blue-50/80 via-indigo-50/50 to-slate-50 dark:from-slate-900/90 dark:via-blue-950/40 dark:to-slate-900/80 border border-blue-200/80 dark:border-blue-900/60 space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="flex items-center gap-2.5">
+              <div className="w-9 h-9 rounded-xl bg-blue-600 text-white flex items-center justify-center shadow-md shadow-blue-600/30">
+                <Smartphone className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                  <span>Multi-Device & PWA Access</span>
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300">
+                    All Devices Supported
+                  </span>
+                </h3>
+                <p className="text-xs text-slate-600 dark:text-slate-300">
+                  Access EduNex seamlessly across Phones, Tablets, Laptops, and Desktops.
+                </p>
+              </div>
+            </div>
+
+            {/* Live Hosting URL & Copy Action */}
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={handleCopyHostingUrl}
+                className="px-3 py-1.5 rounded-xl bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5 transition cursor-pointer shadow-xs active:scale-95"
+              >
+                {copiedUrl ? (
+                  <>
+                    <Check className="w-3.5 h-3.5 text-emerald-500" />
+                    <span className="text-emerald-600 dark:text-emerald-400">Copied!</span>
+                  </>
+                ) : (
+                  <>
+                    <Copy className="w-3.5 h-3.5 text-slate-500" />
+                    <span>Copy Web App URL</span>
+                  </>
+                )}
+              </button>
+              <a
+                href={hostingUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="px-3 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold flex items-center gap-1.5 transition cursor-pointer shadow-sm shadow-blue-600/25 active:scale-95"
+              >
+                <ExternalLink className="w-3.5 h-3.5" />
+                <span>Open App</span>
+              </a>
+            </div>
+          </div>
+
+          {/* Device Selection Tabs */}
+          <div className="flex items-center gap-1 p-1 bg-slate-200/60 dark:bg-slate-800/80 rounded-xl">
+            <button
+              type="button"
+              onClick={() => setActiveDeviceTab('android')}
+              className={`flex-1 py-1.5 px-3 rounded-lg text-xs font-bold flex items-center justify-center gap-1.5 transition cursor-pointer ${
+                activeDeviceTab === 'android'
+                  ? 'bg-white dark:bg-slate-700 text-blue-600 dark:text-cyan-300 shadow-xs'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+              }`}
+            >
+              <Smartphone className="w-3.5 h-3.5" />
+              <span>Android Phones</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveDeviceTab('ios')}
+              className={`flex-1 py-1.5 px-3 rounded-lg text-xs font-bold flex items-center justify-center gap-1.5 transition cursor-pointer ${
+                activeDeviceTab === 'ios'
+                  ? 'bg-white dark:bg-slate-700 text-blue-600 dark:text-cyan-300 shadow-xs'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+              }`}
+            >
+              <Tablet className="w-3.5 h-3.5" />
+              <span>iPhone & iPad (iOS)</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveDeviceTab('desktop')}
+              className={`flex-1 py-1.5 px-3 rounded-lg text-xs font-bold flex items-center justify-center gap-1.5 transition cursor-pointer ${
+                activeDeviceTab === 'desktop'
+                  ? 'bg-white dark:bg-slate-700 text-blue-600 dark:text-cyan-300 shadow-xs'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+              }`}
+            >
+              <Laptop className="w-3.5 h-3.5" />
+              <span>Windows, Mac & Linux</span>
+            </button>
+          </div>
+
+          {/* Device Guide Instructions */}
+          <div className="p-3.5 rounded-xl bg-white dark:bg-slate-900/90 border border-slate-200/80 dark:border-slate-800 text-xs space-y-2">
+            {activeDeviceTab === 'android' && (
+              <div className="space-y-1.5 animate-fadeIn text-slate-700 dark:text-slate-300">
+                <div className="font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+                  <span>Install as Native App on Android:</span>
+                </div>
+                <ol className="list-decimal list-inside space-y-1 text-slate-600 dark:text-slate-400 pl-1">
+                  <li>Open <strong>{hostingUrl}</strong> in Google Chrome on your Android phone.</li>
+                  <li>Tap the <strong>⋮ (Menu)</strong> icon in the top-right corner.</li>
+                  <li>Select <strong>&quot;Add to Home screen&quot;</strong> or <strong>&quot;Install app&quot;</strong>.</li>
+                  <li>EduNex will launch full-screen with offline caching enabled!</li>
+                </ol>
+              </div>
+            )}
+
+            {activeDeviceTab === 'ios' && (
+              <div className="space-y-1.5 animate-fadeIn text-slate-700 dark:text-slate-300">
+                <div className="font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+                  <span>Install on iPhone or iPad:</span>
+                </div>
+                <ol className="list-decimal list-inside space-y-1 text-slate-600 dark:text-slate-400 pl-1">
+                  <li>Open <strong>{hostingUrl}</strong> in Apple Safari on your iPhone or iPad.</li>
+                  <li>Tap the <strong>Share</strong> button (box with an arrow pointing up at the bottom).</li>
+                  <li>Scroll down and tap <strong>&quot;Add to Home Screen&quot;</strong>.</li>
+                  <li>EduNex runs standalone with smooth gesture navigation and safe area notch support!</li>
+                </ol>
+              </div>
+            )}
+
+            {activeDeviceTab === 'desktop' && (
+              <div className="space-y-1.5 animate-fadeIn text-slate-700 dark:text-slate-300">
+                <div className="font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+                  <span>Desktop App on Chrome, Edge & Brave:</span>
+                </div>
+                <ol className="list-decimal list-inside space-y-1 text-slate-600 dark:text-slate-400 pl-1">
+                  <li>Open <strong>{hostingUrl}</strong> in Chrome or Edge on your PC/Mac.</li>
+                  <li>Click the <strong>Install icon</strong> in the browser address bar (top right).</li>
+                  <li>Click <strong>Install</strong> to add EduNex to your Windows Taskbar or macOS Dock.</li>
+                </ol>
+              </div>
+            )}
+          </div>
+        </div>
+
         {/* App Name & Branding Customization */}
         <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/80 space-y-3">
           <div className="flex items-center justify-between">
@@ -254,8 +411,8 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
             <span className="text-[11px] font-semibold text-slate-400 block mb-1.5">Quick Presets:</span>
             <div className="flex flex-wrap gap-1.5">
               {[
+                'Edunex Study AI',
                 'EduNex',
-                'EduNex AI',
                 'NovaStudy AI',
                 'Synapse AI',
                 'CogniFlow AI',

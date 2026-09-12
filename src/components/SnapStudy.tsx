@@ -239,7 +239,7 @@ export const SnapStudy: React.FC<SnapStudyProps> = ({
             </div>
             <h1 className="text-2xl font-black tracking-tight text-white">SnapStudy</h1>
             <p className="text-slate-300 text-sm mt-1 max-w-2xl">
-              Snap a photo of your textbook, upload lecture notes, or jot fast drafts with the floating note button. NEXORA automatically generates summaries, flashcards, quizzes, and intuitive explanations in seconds!
+              Snap a photo of your textbook, upload lecture notes, or jot fast drafts with the floating note button. Edunex Study AI automatically generates summaries, flashcards, quizzes, and intuitive explanations in seconds!
             </p>
           </div>
 

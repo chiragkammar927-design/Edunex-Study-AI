@@ -115,7 +115,7 @@ export const StudyEmergencyModal: React.FC<StudyEmergencyModalProps> = ({
             </button>
           </div>
           <p className="mt-2 text-xs sm:text-sm text-rose-100 leading-relaxed">
-            "I have an exam tomorrow!" Don't panic. NEXORA isolates the highest-ROI formulas, guaranteed exam patterns, and low-priority fluff to skip.
+            "I have an exam tomorrow!" Don't panic. Edunex Study AI isolates the highest-ROI formulas, guaranteed exam patterns, and low-priority fluff to skip.
           </p>
         </div>
 

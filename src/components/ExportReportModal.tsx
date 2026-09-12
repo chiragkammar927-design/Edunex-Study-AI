@@ -1231,7 +1231,7 @@ export const ExportReportModal: React.FC<ExportReportModalProps> = ({
   const handleCopyText = () => {
     soundFX.playPop();
     let text = `========================================\n`;
-    text += `NEXORA STUDY AI ACADEMIC REPORT: ${reportType.toUpperCase()}\n`;
+    text += `EDUNEX STUDY AI ACADEMIC REPORT: ${reportType.toUpperCase()}\n`;
     text += `Student: ${profile.name} (${profile.grade || 'STEM'})\n`;
     text += `Date: ${currentDateFormatted}\n`;
     text += `Scope: ${selectedSubject}\n`;
@@ -1518,7 +1518,7 @@ export const ExportReportModal: React.FC<ExportReportModalProps> = ({
                   </p>
                 </div>
                 <div className="text-right">
-                  <span className="text-xs font-black text-blue-600 tracking-wider">NEXORA STUDY AI</span>
+                  <span className="text-xs font-black text-blue-600 tracking-wider">EDUNEX STUDY AI</span>
                   <p className="text-[10px] text-slate-400 uppercase">Verified Report</p>
                 </div>
               </div>

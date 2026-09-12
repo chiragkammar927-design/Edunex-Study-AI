@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="none">
+  <defs>
+    <linearGradient id="edunex-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#3b82f6"/>
+      <stop offset="50%" stop-color="#6366f1"/>
+      <stop offset="100%" stop-color="#9333ea"/>
+    </linearGradient>
+    <linearGradient id="spark-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f59e0b"/>
+      <stop offset="100%" stop-color="#fbbf24"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="128" fill="url(#edunex-grad)"/>
+  <!-- Graduation Cap & AI Sparkles -->
+  <path d="M256 128L96 213.33L256 298.67L416 213.33L256 128Z" fill="#ffffff"/>
+  <path d="M149.33 241.78V330.67C149.33 371.88 197.09 405.33 256 405.33C314.91 405.33 362.67 371.88 362.67 330.67V241.78L256 298.67L149.33 241.78Z" fill="#e0e7ff"/>
+  <path d="M416 213.33V341.33" stroke="#ffffff" stroke-width="16" stroke-linecap="round"/>
+  <circle cx="416" cy="352" r="16" fill="url(#spark-grad)"/>
+  <!-- AI Sparkle on top right -->
+  <path d="M370 120L376 138L394 144L376 150L370 168L364 150L346 144L364 138L370 120Z" fill="url(#spark-grad)"/>
+</svg>

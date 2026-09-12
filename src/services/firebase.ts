@@ -3,6 +3,11 @@ import {
   getAuth,
   GoogleAuthProvider,
   signInWithPopup,
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  sendEmailVerification,
+  sendPasswordResetEmail,
+  updateProfile,
   signOut,
   onAuthStateChanged,
   User,
@@ -104,6 +109,50 @@ export async function testFirestoreConnection(): Promise<boolean> {
   }
 }
 
+// Password Strength Validation Standards
+export interface PasswordValidationResult {
+  hasMinLength: boolean; // >= 8 chars
+  hasUpperCase: boolean; // >= 1 uppercase
+  hasLowerCase: boolean; // >= 1 lowercase
+  hasNumber: boolean; // >= 1 digit
+  hasSpecialChar: boolean; // >= 1 symbol
+  score: number; // 0 to 5
+  isStrong: boolean; // meets all criteria
+  feedback: string;
+}
+
+export function validateStrongPassword(password: string): PasswordValidationResult {
+  const hasMinLength = password.length >= 8;
+  const hasUpperCase = /[A-Z]/.test(password);
+  const hasLowerCase = /[a-z]/.test(password);
+  const hasNumber = /[0-9]/.test(password);
+  const hasSpecialChar = /[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?~`]/.test(password);
+
+  let score = 0;
+  if (hasMinLength) score++;
+  if (hasUpperCase) score++;
+  if (hasLowerCase) score++;
+  if (hasNumber) score++;
+  if (hasSpecialChar) score++;
+
+  let feedback = 'Very Weak';
+  if (score === 5) feedback = 'Very Strong';
+  else if (score === 4) feedback = 'Strong';
+  else if (score === 3) feedback = 'Medium';
+  else if (score === 2) feedback = 'Weak';
+
+  return {
+    hasMinLength,
+    hasUpperCase,
+    hasLowerCase,
+    hasNumber,
+    hasSpecialChar,
+    score,
+    isStrong: hasMinLength && hasUpperCase && hasLowerCase && hasNumber && hasSpecialChar,
+    feedback,
+  };
+}
+
 // Auth operations
 export async function signInWithGoogle(): Promise<User | null> {
   try {
@@ -111,6 +160,81 @@ export async function signInWithGoogle(): Promise<User | null> {
     return result.user;
   } catch (error) {
     console.error('Google Sign-In Error:', error);
+    throw error;
+  }
+}
+
+export async function signInWithEmail(email: string, pass: string): Promise<User> {
+  try {
+    const res = await signInWithEmailAndPassword(auth, email.trim(), pass);
+    return res.user;
+  } catch (error) {
+    console.error('Email Sign-In Error:', error);
+    throw error;
+  }
+}
+
+export async function signUpWithEmail(
+  email: string,
+  pass: string,
+  displayName?: string
+): Promise<{ user: User; verificationSent: boolean }> {
+  const validation = validateStrongPassword(pass);
+  if (!validation.isStrong) {
+    throw new Error('Please ensure your password meets all strong security requirements (min 8 chars, uppercase, lowercase, number, and special character).');
+  }
+
+  try {
+    const res = await createUserWithEmailAndPassword(auth, email.trim(), pass);
+    const user = res.user;
+
+    if (displayName && displayName.trim()) {
+      try {
+        await updateProfile(user, { displayName: displayName.trim() });
+      } catch (err) {
+        console.warn('Could not set displayName on profile:', err);
+      }
+    }
+
+    let verificationSent = false;
+    try {
+      await sendEmailVerification(user);
+      verificationSent = true;
+    } catch (err) {
+      console.warn('Could not dispatch initial email verification:', err);
+    }
+
+    return { user, verificationSent };
+  } catch (error) {
+    console.error('Sign-Up Error:', error);
+    throw error;
+  }
+}
+
+export async function resendVerificationEmail(user: User): Promise<void> {
+  try {
+    await sendEmailVerification(user);
+  } catch (error) {
+    console.error('Resend Verification Error:', error);
+    throw error;
+  }
+}
+
+export async function reloadUser(user: User): Promise<User> {
+  try {
+    await user.reload();
+    return auth.currentUser || user;
+  } catch (error) {
+    console.error('Reload User Error:', error);
+    throw error;
+  }
+}
+
+export async function sendPasswordReset(email: string): Promise<void> {
+  try {
+    await sendPasswordResetEmail(auth, email.trim());
+  } catch (error) {
+    console.error('Password Reset Error:', error);
     throw error;
   }
 }

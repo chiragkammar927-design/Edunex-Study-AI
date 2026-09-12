@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { StudentProfile } from '../types';
 import { Flame, Sparkles, Moon, Sun, Menu, Edit2, Check, X, Crown, Bell, GraduationCap, Zap, Cloud, CloudOff, LogIn, LogOut, User as UserIcon } from 'lucide-react';
 import { User } from 'firebase/auth';
+import { Logo } from './Logo';
 
 interface NavbarProps {
   profile: StudentProfile;
@@ -71,18 +72,8 @@ export const Navbar: React.FC<NavbarProps> = ({
           </button>
 
           <div className="flex items-center gap-2.5">
-            {/* EduNex Custom Emblem Logo */}
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 via-indigo-600 to-purple-500 p-[1.5px] shadow-md shadow-blue-600/25 relative group select-none shrink-0 transition-transform duration-300 hover:scale-105">
-              <div className="w-full h-full rounded-[10px] bg-slate-900 flex items-center justify-center text-white relative overflow-hidden">
-                <div className="absolute inset-0 bg-gradient-to-tr from-blue-600/90 via-indigo-600/80 to-purple-500/90" />
-                <div className="relative z-10 flex items-center justify-center">
-                  <GraduationCap className="w-5 h-5 text-white drop-shadow-xs" />
-                </div>
-                <div className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-cyan-400 border-2 border-slate-900 flex items-center justify-center shadow-xs">
-                  <Zap className="w-2.5 h-2.5 text-slate-950 fill-slate-950" />
-                </div>
-              </div>
-            </div>
+            {/* Edunex Study AI Official Logo */}
+            <Logo size="md" glow />
 
             <div className="relative">
               {isEditingName ? (
@@ -125,7 +116,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                       Choose Preset Name:
                     </span>
                     <div className="flex flex-wrap gap-1.5">
-                      {['EduNex', 'EduNex AI', 'NovaStudy AI', 'Synapse AI', 'CogniFlow', 'ApexStudy'].map(
+                      {['Edunex Study AI', 'EduNex', 'NovaStudy AI', 'Synapse AI', 'CogniFlow', 'ApexStudy'].map(
                         (preset) => (
                           <button
                             key={preset}
@@ -151,15 +142,17 @@ export const Navbar: React.FC<NavbarProps> = ({
                       setTempName(appName);
                       setIsEditingName(true);
                     }}
-                    className="cursor-pointer hover:opacity-90 transition flex items-center gap-1.5"
+                    className="cursor-pointer hover:opacity-90 transition flex items-center gap-1.5 whitespace-nowrap"
                     title="Click to rename app"
                   >
-                    <span className="font-black text-lg tracking-tight bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 dark:from-blue-400 dark:via-indigo-300 dark:to-purple-300 bg-clip-text text-transparent">
+                    <span className="font-black text-lg tracking-tight bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 dark:from-blue-400 dark:via-indigo-300 dark:to-purple-300 bg-clip-text text-transparent whitespace-nowrap">
                       {appName}
                     </span>
-                    <span className="px-1.5 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider bg-blue-100 dark:bg-blue-950/80 text-blue-700 dark:text-cyan-300 border border-blue-200 dark:border-blue-800 hidden sm:inline-block">
-                      AI
-                    </span>
+                    {!appName.toLowerCase().endsWith('ai') && (
+                      <span className="px-1.5 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider bg-blue-100 dark:bg-blue-950/80 text-blue-700 dark:text-cyan-300 border border-blue-200 dark:border-blue-800 hidden sm:inline-block">
+                        AI
+                      </span>
+                    )}
                   </div>
                   {onRenameApp && (
                     <button
